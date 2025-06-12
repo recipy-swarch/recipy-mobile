@@ -37,6 +37,9 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "API_GATEWAY_URL": "http://recipy-ag:3030"
     }
   }
 }
