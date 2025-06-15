@@ -39,7 +39,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "API_GATEWAY_URL": "http://recipy-ag:3030"
+      "API_GATEWAY_URL": "https://rkgt95bh-3030.use2.devtunnels.ms"
     }
   }
 }
