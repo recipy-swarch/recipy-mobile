@@ -17,10 +17,10 @@ class UserService {
   registerUser = async (userData: IUserRegister): Promise<boolean> => {
     try {
       const payload = {
-        "_name": userData.name,
-        "_email": userData.email,
-        "_username": userData.username,
-        "_password": userData.password,
+        "name": userData.name,
+        "email": userData.email,
+        "username": userData.username,
+        "password": userData.password,
       };
 
       const response = await fetch(`${this.apiUrl}/user/register`, {
@@ -60,8 +60,8 @@ class UserService {
   loginUser = async (userData: { username: string; password: string }): Promise<boolean> => {
     try {
       const payload = {
-        "_username": userData.username,
-        "_password": userData.password,
+        "username": userData.username,
+        "password": userData.password,
       };
 
       const response = await fetch(`${this.apiUrl}/user/login`, {
