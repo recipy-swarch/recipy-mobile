@@ -1,12 +1,24 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+
+import userService from './services/UserService';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const auth = await userService.isAuthenticated();
+    setIsAuthenticated(auth);
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -15,14 +27,42 @@ export default function LoginScreen() {
     }
 
     try {
-      // Aquí irá la lógica de login
-      console.log('Intentando login con:', { email, password });
-      // Por ahora solo redirigimos de vuelta a la pantalla principal
-      router.back();
+      const success = await userService.loginUser({ username: email, password });
+      if (success) {
+        setIsAuthenticated(true);
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Error', userService.error || 'Error al iniciar sesión');
+      }
     } catch (error) {
       Alert.alert('Error', 'Error al iniciar sesión');
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      await userService.logoutUser();
+      setIsAuthenticated(false);
+      router.replace('/');
+    } catch (error) {
+      Alert.alert('Error', 'Error al cerrar sesión');
+    }
+  };
+
+  const handleRegister = () => {
+    router.push('/register');
+  };
+
+  if (isAuthenticated) {
+    return (
+      <ThemedView style={styles.container}>
+        <ThemedText type="title" style={styles.title}>Sesión Iniciada</ThemedText>
+        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+          <ThemedText style={styles.buttonText}>Cerrar Sesión</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -49,6 +89,10 @@ export default function LoginScreen() {
       
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+        <ThemedText style={styles.registerButtonText}>¿No tienes cuenta? Regístrate</ThemedText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -89,6 +133,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  registerButton: {
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  registerButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
   },
   backButton: {
     padding: 10,

@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IRecipe } from '../interfaces/IRecipe';
 import recipeService from '../services/RecipeService';
+import { buildImageUrl } from '../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
@@ -52,7 +53,7 @@ export default function HomeScreen() {
 
   const renderRecipeCard = ({ item }: { item: IRecipe }) => {
     const imageUrl = item.images && item.images.length > 0 
-      ? item.images[0] 
+      ? buildImageUrl(item.images[0])
       : 'https://via.placeholder.com/300x200?text=Sin+imagen';
 
     return (

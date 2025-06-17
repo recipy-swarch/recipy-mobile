@@ -1,11 +1,12 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { router, Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+import userService from '../services/UserService';
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
@@ -15,6 +16,26 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const auth = await userService.isAuthenticated();
+    setIsAuthenticated(auth);
+  };
+
+  const handleAuthPress = async () => {
+    if (isAuthenticated) {
+      await userService.logoutUser();
+      setIsAuthenticated(false);
+      router.replace('/');
+    } else {
+      router.push('/login');
+    }
+  };
 
   return (
     <Tabs
@@ -29,10 +50,14 @@ export default function TabLayout() {
         },
         headerRight: () => (
           <TouchableOpacity
-            onPress={() => router.push('/login')}
-            style={styles.loginButton}
+            onPress={handleAuthPress}
+            style={styles.authButton}
           >
-            <FontAwesome name="user" size={20} color={Colors[colorScheme ?? 'light'].text} />
+            <FontAwesome 
+              name={isAuthenticated ? "sign-out" : "user"} 
+              size={20} 
+              color={Colors[colorScheme ?? 'light'].text} 
+            />
           </TouchableOpacity>
         ),
       }}>
@@ -48,7 +73,7 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  loginButton: {
+  authButton: {
     marginRight: 15,
     padding: 8,
     borderRadius: 20,

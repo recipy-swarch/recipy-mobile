@@ -39,7 +39,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "API_GATEWAY_URL": "https://rkgt95bh-3030.use2.devtunnels.ms"
+      "API_GATEWAY_URL": "https://rkgt95bh-80.use2.devtunnels.ms"
     }
   }
 }
