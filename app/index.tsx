@@ -1,91 +1,154 @@
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+
 import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import userService from './services/userService';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const auth = await userService.isAuthenticated();
+    setIsAuthenticated(auth);
+  };
 
   const handleLogin = async () => {
-    if (!username || !password) {
+    if (!email || !password) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
 
-    const result = await userService.loginUser({ username, password });
-    
-    if (result) {
-      router.replace('/(tabs)');
-    } else {
-      Alert.alert('Error', userService.error || 'Error al iniciar sesión');
+    try {
+      const success = await userService.loginUser({ username: email, password });
+      if (success) {
+        setIsAuthenticated(true);
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Error', userService.error || 'Error al iniciar sesión');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error al iniciar sesión');
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Recipy</Text>
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Correo electrónico"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Iniciar Sesión</Text>
+  const handleLogout = async () => {
+    try {
+      await userService.logoutUser();
+      setIsAuthenticated(false);
+      router.replace('/');
+    } catch (error) {
+      Alert.alert('Error', 'Error al cerrar sesión');
+    }
+  };
+
+  const handleRegister = () => {
+    router.push('/register');
+  };
+
+  if (isAuthenticated) {
+    return (
+      <ThemedView style={styles.container}>
+        <ThemedText type="title" style={styles.title}>Sesión Iniciada</ThemedText>
+        <TouchableOpacity style={styles.button} onPress={handleLogout}>
+          <ThemedText style={styles.buttonText}>Cerrar Sesión</ThemedText>
         </TouchableOpacity>
-      </View>
-    </View>
+      </ThemedView>
+    );
+  }
+
+  return (
+    <ThemedView style={styles.container}>
+      <ThemedText type="title" style={styles.title}>Iniciar Sesión</ThemedText>
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico"
+        value={email}
+        onChangeText={setEmail}
+        placeholderTextColor="#666"
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        placeholderTextColor="#666"
+        secureTextEntry
+      />
+      
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <ThemedText style={styles.buttonText}>Iniciar Sesión</ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+        <ThemedText style={styles.registerButtonText}>¿No tienes cuenta? Regístrate</ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <ThemedText style={styles.backButtonText}>Volver</ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 24,
+    marginBottom: 30,
     textAlign: 'center',
-    marginBottom: 40,
-    color: '#333',
-  },
-  form: {
-    width: '100%',
   },
   input: {
     height: 50,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    paddingHorizontal: 15,
     marginBottom: 15,
-    fontSize: 16,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#007AFF',
-    height: 50,
+    padding: 15,
     borderRadius: 8,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 20,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  registerButton: {
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  registerButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+  },
+  backButton: {
+    padding: 10,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
   },
 }); 
