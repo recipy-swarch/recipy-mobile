@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import userService from './services/UserService';
+import userService from './services/userService';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
