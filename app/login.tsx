@@ -1,10 +1,10 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-import userService from './services/UserService';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import userService from './services/userService';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

@@ -4,7 +4,7 @@
     "slug": "recipy-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/Imagotipo.png",
     "scheme": "recipymobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,10 +13,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/Imagotipo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.recipy.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +40,11 @@
       "typedRoutes": true
     },
     "extra": {
-      "API_GATEWAY_URL": "https://rkgt95bh-80.use2.devtunnels.ms"
+      "API_GATEWAY_URL": "https://rkgt95bh-80.use2.devtunnels.ms",
+      "router": {},
+      "eas": {
+        "projectId": "1aab5458-d3df-4dd1-9264-575c8fd6b72c"
+      }
     }
   }
 }

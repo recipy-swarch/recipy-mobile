@@ -4,7 +4,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import userService from './services/UserService';
+import userService from './services/userService';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
