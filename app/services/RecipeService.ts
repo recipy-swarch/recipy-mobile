@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { IRecipe } from '../interfaces/IRecipe';
+import type { IComments } from "../interfaces/IComments"
 
 class RecipeService {
     private apiUrl: string;
@@ -114,6 +115,70 @@ class RecipeService {
             throw error;
         }
     };
+    fetchComments = async (recipe_id: string): Promise<IComments[]> => {
+        const url = `${this.apiUrl}/recipe/graphql/recipes/${recipe_id}/comments`;
+        console.log("Fetching comments from:", url);
+        const response = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          console.error("Error fetching comments:", text);
+          throw new Error(`Error ${response.status}`);
+        }
+        const data = await response.json();
+        // Esperamos un array con shape IComments[]
+        return data as IComments[];
+      }
+      createComment = async(
+        recipeId: string,
+        content: string,
+        parentId?: string,
+        token?: string
+      ): Promise<IComments> => {
+        const url = `${this.apiUrl}/recipe/graphql/comments_recipes`;
+        const payload: any = { recipe_id: recipeId, content };
+        if (parentId) payload.parent_id = parentId;
+    
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+    
+        console.log("CommentService.createComment -> URL:", url, "headers:", headers, "payload:", payload);
+    
+        const resp = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(payload),
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          console.error("Error createComment:", text);
+          throw new Error(`Error ${resp.status}: ${text}`);
+        }
+        const data = await resp.json();
+        return data as IComments;
+      }
+      getLikesCount = async (recipeId: string): Promise<number> =>{
+        const url = `${this.apiUrl}/recipe/graphql/likes_count?recipe_id=${recipeId}`;
+        const resp = await fetch(url, {
+          method: "GET",
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          console.error("Error getLikesCount:", text);
+          throw new Error(`Error ${resp.status}: ${text}`);
+        }
+        // El response_model es int, así que JSON.parse resp.json() devolaría un número
+        const data = await resp.json();
+        // data es un número: 
+        return data as number;
+      }
+    
 }
 
 const recipeService = new RecipeService();
