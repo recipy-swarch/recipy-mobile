@@ -21,6 +21,7 @@ import { ThemedView } from "@/components/ThemedView"
 import type { IRecipe } from "../interfaces/IRecipe"
 import type { IComments } from "../interfaces/IComments"
 import recipeService from "../services/RecipeService"
+import AuthService from "../services/AuthService"
 import { buildImageUrl } from "../utils/imageUtils"
 
 const { width, height } = Dimensions.get("window")
@@ -34,10 +35,10 @@ const CommentItem = ({ comment, onReply }: CommentItemProps) => (
   <ThemedView style={styles.commentItem}>
     <ThemedView style={styles.commentHeader}>
       <ThemedView style={styles.commentAvatar}>
-        <ThemedText style={styles.commentAvatarText}>{comment.user_name?.charAt(0).toUpperCase() || "U"}</ThemedText>
+        <ThemedText style={styles.commentAvatarText}>{comment.user_id?.charAt(0).toUpperCase() || "U"}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.commentInfo}>
-        <ThemedText style={styles.commentAuthor}>{comment.user_name || "Usuario"}</ThemedText>
+        <ThemedText style={styles.commentAuthor}>{comment.user_id || "Usuario"}</ThemedText>
         <ThemedText style={styles.commentDate}>{new Date(comment.created_at).toLocaleDateString()}</ThemedText>
       </ThemedView>
     </ThemedView>
@@ -60,6 +61,7 @@ export default function RecipeDetailScreen() {
   const [likesCount, setLikesCount] = useState(0)
   const [hasLiked, setHasLiked] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [userToken, setUserToken] = useState<string | null>(null)
 
   const scrollY = useRef(new Animated.Value(0)).current
   const flatListRef = useRef<FlatList>(null)
@@ -69,8 +71,18 @@ export default function RecipeDetailScreen() {
       fetchRecipeDetail()
       fetchComments()
       fetchLikesData()
+      getAuthToken()
     }
   }, [id])
+
+  const getAuthToken = async () => {
+    try {
+      const token = await AuthService.getToken()
+      setUserToken(token)
+    } catch (err) {
+      console.error("Error getting auth token:", err)
+    }
+  }
 
   const fetchRecipeDetail = async () => {
     try {
@@ -124,7 +136,7 @@ export default function RecipeDetailScreen() {
         setHasLiked(false)
         setLikesCount((prev) => prev - 1)
       } else {
-        // await recipeService.likeRecipe(id, userToken);
+        await recipeService.likeRecipe(id, userToken || undefined);
         setHasLiked(true)
         setLikesCount((prev) => prev + 1)
       }
@@ -138,7 +150,7 @@ export default function RecipeDetailScreen() {
     if (!newComment.trim() || !id) return
 
     try {
-      // await recipeService.createComment(id, newComment.trim(), replyingTo, userToken);
+      await recipeService.createComment(id, newComment.trim(), replyingTo || undefined, userToken || undefined);
       setNewComment("")
       setReplyingTo(null)
       fetchComments() // Refresh comments

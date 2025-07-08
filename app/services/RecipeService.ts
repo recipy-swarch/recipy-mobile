@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
+import type { IComments } from "../interfaces/IComments";
+import type { ILike } from '../interfaces/ILike';
 import { IRecipe } from '../interfaces/IRecipe';
-import type { IComments } from "../interfaces/IComments"
 
 class RecipeService {
     private apiUrl: string;
@@ -178,7 +179,23 @@ class RecipeService {
         // data es un número: 
         return data as number;
       }
-    
+      likeRecipe = async(recipeId: string, token?: string): Promise<ILike> => {
+        const url = `${this.apiUrl}/recipe/graphql/like_recipe?recipe_id=${recipeId}`;
+        const headers: Record<string,string> = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const resp = await fetch(url, {
+          method: "POST",
+          headers,
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          console.error("Error likeRecipe:", text);
+          throw new Error(`Error ${resp.status}: ${text}`);
+        }
+        const data = await resp.json();
+        // data debe cumplir shape de ILike
+        return data as ILike;
+      }
 }
 
 const recipeService = new RecipeService();

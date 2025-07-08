@@ -2,18 +2,17 @@
 
 import { FontAwesome } from "@expo/vector-icons"
 import { router } from "expo-router"
-import { useCallback, useEffect, useState, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   Alert,
+  Animated,
   Dimensions,
   FlatList,
   Image,
   RefreshControl,
   StyleSheet,
   TouchableOpacity,
-  Animated,
-  View,
-  TextInput,
+  View
 } from "react-native"
 
 import { ThemedText } from "@/components/ThemedText"
@@ -31,8 +30,6 @@ interface RecipeCardProps {
 }
 
 const RecipeCard = ({ item, index }: RecipeCardProps) => {
-  const [liked, setLiked] = useState(false)
-  const [likesCount, setLikesCount] = useState(Math.floor(Math.random() * 50) + 1) // Simulado
   const scaleAnim = useRef(new Animated.Value(1)).current
 
   const imageUrl =
@@ -58,11 +55,6 @@ const RecipeCard = ({ item, index }: RecipeCardProps) => {
     })
   }
 
-  const handleLike = () => {
-    setLiked(!liked)
-    setLikesCount(liked ? likesCount - 1 : likesCount + 1)
-  }
-
   return (
     <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
@@ -70,11 +62,6 @@ const RecipeCard = ({ item, index }: RecipeCardProps) => {
         <View style={styles.imageContainer}>
           <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
           <View style={styles.imageOverlay} />
-
-          {/* Botón de like flotante */}
-          <TouchableOpacity style={styles.likeButton} onPress={handleLike}>
-            <FontAwesome name={liked ? "heart" : "heart-o"} size={20} color={liked ? "#FF6B6B" : "#fff"} />
-          </TouchableOpacity>
 
           {/* Badge de tiempo */}
           <View style={styles.timeBadge}>
@@ -108,17 +95,6 @@ const RecipeCard = ({ item, index }: RecipeCardProps) => {
 
           {/* Footer con likes y comentarios */}
           <View style={styles.cardFooter}>
-            <View style={styles.socialStats}>
-              <View style={styles.statItem}>
-                <FontAwesome name="heart" size={14} color="#FF6B6B" />
-                <ThemedText style={styles.statText}>{likesCount}</ThemedText>
-              </View>
-              <View style={styles.statItem}>
-                <FontAwesome name="comment" size={14} color="#4ECDC4" />
-                <ThemedText style={styles.statText}>{Math.floor(Math.random() * 20)}</ThemedText>
-              </View>
-            </View>
-
             <TouchableOpacity style={styles.viewButton}>
               <ThemedText style={styles.viewButtonText}>Ver receta</ThemedText>
               <FontAwesome name="arrow-right" size={12} color="#4ECDC4" />
@@ -132,22 +108,17 @@ const RecipeCard = ({ item, index }: RecipeCardProps) => {
 
 export default function HomeScreen() {
   const [recipes, setRecipes] = useState<IRecipe[]>([])
-  const [filteredRecipes, setFilteredRecipes] = useState<IRecipe[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showSearch, setShowSearch] = useState(false)
 
   const headerAnim = useRef(new Animated.Value(0)).current
-  const searchAnim = useRef(new Animated.Value(0)).current
 
   const fetchRecipes = async () => {
     try {
       setError(null)
       const data = await recipeService.fetchAllRecipes()
       setRecipes(data)
-      setFilteredRecipes(data)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error desconocido"
       console.error("Error detallado:", err)
@@ -164,30 +135,6 @@ export default function HomeScreen() {
     fetchRecipes()
   }, [])
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    if (query.trim() === "") {
-      setFilteredRecipes(recipes)
-    } else {
-      const filtered = recipes.filter((recipe) => recipe.title.toLowerCase().includes(query.toLowerCase()))
-      setFilteredRecipes(filtered)
-    }
-  }
-
-  const toggleSearch = () => {
-    setShowSearch(!showSearch)
-    Animated.timing(searchAnim, {
-      toValue: showSearch ? 0 : 1,
-      duration: 300,
-      useNativeDriver: false,
-    }).start()
-
-    if (showSearch) {
-      setSearchQuery("")
-      setFilteredRecipes(recipes)
-    }
-  }
-
   useEffect(() => {
     fetchRecipes()
     // Animación de entrada del header
@@ -199,7 +146,7 @@ export default function HomeScreen() {
   }, [])
 
   const handleLogin = () => {
-    router.push("/login")
+    router.push({ pathname: '/login' as const })
   }
 
   const renderRecipeCard = ({ item, index }: { item: IRecipe; index: number }) => (
@@ -224,46 +171,12 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerButton} onPress={toggleSearch}>
-            <FontAwesome name="search" size={20} color="#4ECDC4" />
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
             <FontAwesome name="user" size={16} color="#fff" />
             <ThemedText style={styles.loginButtonText}>Entrar</ThemedText>
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Barra de búsqueda animada */}
-      <Animated.View
-        style={[
-          styles.searchContainer,
-          {
-            height: searchAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 50],
-            }),
-            opacity: searchAnim,
-          },
-        ]}
-      >
-        <View style={styles.searchInputContainer}>
-          <FontAwesome name="search" size={16} color="#666" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar recetas..."
-            value={searchQuery}
-            onChangeText={handleSearch}
-            placeholderTextColor="#666"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => handleSearch("")}>
-              <FontAwesome name="times" size={16} color="#666" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </Animated.View>
 
       {/* Estadísticas rápidas */}
       <View style={styles.statsContainer}>
@@ -272,7 +185,7 @@ export default function HomeScreen() {
           <ThemedText style={styles.statLabel}>Recetas</ThemedText>
         </View>
         <View style={styles.statCard}>
-          <ThemedText style={styles.statNumber}>{searchQuery ? filteredRecipes.length : recipes.length}</ThemedText>
+          <ThemedText style={styles.statNumber}>{recipes.length}</ThemedText>
           <ThemedText style={styles.statLabel}>Disponibles</ThemedText>
         </View>
         <View style={styles.statCard}>
@@ -312,7 +225,7 @@ export default function HomeScreen() {
       )}
 
       <FlatList
-        data={filteredRecipes}
+        data={recipes}
         keyExtractor={(item) => item.id}
         renderItem={renderRecipeCard}
         ListHeaderComponent={renderHeader}
@@ -320,19 +233,13 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#4ECDC4"]} />}
         ListEmptyComponent={
-          !error && (
+          !error ? (
             <View style={styles.emptyContainer}>
               <FontAwesome name="search" size={60} color="#ccc" />
-              <ThemedText style={styles.emptyTitle}>
-                {searchQuery ? "No se encontraron recetas" : "No hay recetas disponibles"}
-              </ThemedText>
-              <ThemedText style={styles.emptySubtitle}>
-                {searchQuery
-                  ? `Intenta buscar "${searchQuery}" de otra manera`
-                  : "¡Pronto tendremos deliciosas recetas para ti!"}
-              </ThemedText>
+              <ThemedText style={styles.emptyTitle}>No hay recetas disponibles</ThemedText>
+              <ThemedText style={styles.emptySubtitle}>¡Pronto tendremos deliciosas recetas para ti!</ThemedText>
             </View>
-          )
+          ) : null
         }
       />
     </ThemedView>
@@ -409,19 +316,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
-  headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   loginButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -435,29 +329,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
-  },
-  searchContainer: {
-    overflow: "hidden",
-    marginBottom: 10,
-  },
-  searchInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    gap: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#333",
   },
   statsContainer: {
     flexDirection: "row",
@@ -547,17 +418,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "rgba(0,0,0,0.1)",
   },
-  likeButton: {
-    position: "absolute",
-    top: 15,
-    right: 15,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
   timeBadge: {
     position: "absolute",
     bottom: 15,
@@ -610,20 +470,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  socialStats: {
-    flexDirection: "row",
-    gap: 15,
-  },
-  statItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  statText: {
-    color: "#666",
-    fontSize: 14,
-    fontWeight: "600",
   },
   viewButton: {
     flexDirection: "row",
