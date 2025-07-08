@@ -29,7 +29,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "API_GATEWAY_URL": "https://rkgt95bh-80.use2.devtunnels.ms",
+      "API_GATEWAY_URL": "https://rkgt95bh-81.use2.devtunnels.ms",
       "router": {},
       "eas": {
         "projectId": "1aab5458-d3df-4dd1-9264-575c8fd6b72c"
